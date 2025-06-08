@@ -2,11 +2,10 @@ package auth
 
 import (
 	"app/breafURL/configs"
+	"app/breafURL/pkg/request"
 	"app/breafURL/pkg/response"
-	"encoding/json"
 	"fmt"
 	"net/http"
-	"regexp"
 )
 
 type AuthHandlerDeps struct {
@@ -27,23 +26,12 @@ func NewAuthHandler(router *http.ServeMux, deps AuthHandlerDeps) {
 
 func (handler *AuthHandler) login() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var payload LoginRequest
-		err := json.NewDecoder(r.Body).Decode(&payload)
+		body, err := request.HandleBody[LoginRequest](w, r)
 		if err != nil {
-			response.ResponseWithJson(w, err.Error(), http.StatusBadRequest)
+			fmt.Println(err)
 			return
 		}
-
-		reg, _ := regexp.Compile(`[A-Za-z0-9\._%+\-]+@[A-Za-z0-9\.\-]+\.[A-Za-z]{2,}`)
-		if !reg.MatchString(payload.Email) {
-			response.ResponseWithJson(w, "Wrong email", http.StatusBadRequest)
-			return
-		}
-
-		if payload.Password == "" {
-			response.ResponseWithJson(w, "Wrong password", http.StatusBadRequest)
-			return
-		}
+		fmt.Println(body)
 
 		data := LoginResponse{
 			Token: "testing",
@@ -55,6 +43,11 @@ func (handler *AuthHandler) login() http.HandlerFunc {
 
 func (handler *AuthHandler) register() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println("Register")
+		body, err := request.HandleBody[RegisterRequest](w, r)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		fmt.Println(body)
 	}
 }
